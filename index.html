@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Home</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <!--
+      Need a visual blank slate?
+      Remove all code in `styles.css`!
+    -->
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="script.js"></script>
+  </head>
+  <body>
+    <nav>
+      <a href="/" aria-current="page">Home</a>
+      <a href="/page2.html">Other page</a>
+    </nav>
+    <main>
+      <h1>Home page</h1>
+    </main>
+  </body>
+</html>
+import pandas as pd
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
+
+# Create a Pandas Excel writer using openpyxl as the engine
+file_path = "sumbat_mi_uram_laporan_riset.xlsx"
+writer = pd.ExcelWriter(file_path, engine='openpyxl')
+
+# 1. Sheet Profil Pengguna
+profile_data = {
+    "Parameter": ["Nama Lengkap", "Tanggal Lahir", "Umur", "No HP / WhatsApp", "Asal Institusi", "Tujuan Utama", "Deskripsi"],
+    "Nilai": ["Tiras Balyo, S.Pd", "1998-05-12", "28", "081234567890", "Universitas Pendidikan", "Riset Skripsi & Manajemen Literatur", "Peneliti dan pendidik yang berfokus pada pengembangan teknologi pendidikan dan manajemen data."]
+}
+df_profile = pd.DataFrame(profile_data)
+df_profile.to_excel(writer, sheet_name='Profil_Pengguna', index=False)
+
+# 2. Sheet Artikel & Jurnal (beserta Sitasi APA & BibTeX)
+articles_data = {
+    "Judul Artikel": [
+        "Implementasi Artificial Intelligence dalam Sistem Manajemen Data Modern",
+        "Analisis Komparatif Performa Framework Next.js dan React.js"
+    ],
+    "Penulis": ["Ahmad Fauzi, Siti Rahma", "Budi Santoso"],
+    "Tahun Terbit": [2025, 2024],
+    "DOI": ["10.1016/j.csi.2025.10392", "10.1109/TSE.2024.34211"],
+    "Format APA": [
+        "Ahmad Fauzi, Siti Rahma (2025). Implementasi Artificial Intelligence dalam Sistem Manajemen Data Modern. DOI: 10.1016/j.csi.2025.10392",
+        "Budi Santoso (2024). Analisis Komparatif Performa Framework Next.js dan React.js. DOI: 10.1109/TSE.2024.34211"
+    ],
+    "Kategori / Tag": ["AI, Database, Riset", "Web Dev, React, Next.js"]
+}
+df_articles = pd.DataFrame(articles_data)
+df_articles.to_excel(writer, sheet_name='Artikel_Jurnal', index=False)
+
+# 3. Sheet Task Manager
+tasks_data = {
+    "Judul Tugas": [
+        "Review Literatur Bab 2 tentang AI & Database",
+        "Setup Skema Database Supabase",
+        "Wawancara Narasumber Lapangan"
+    ],
+    "Proyek": ["Riset Skripsi", "Pengembangan Aplikasi", "Riset Lapangan"],
+    "Prioritas": ["Tinggi", "Sedang", "Tinggi"],
+    "Status": ["Sedang Dikerjakan", "Selesai", "Belum Selesai"],
+    "Deadline": ["2026-10-15", "2026-10-02", "2026-10-20"]
+}
+df_tasks = pd.DataFrame(tasks_data)
+df_tasks.to_excel(writer, sheet_name='Task_Manager', index=False)
+
+writer.close()
+
+# Styling workbook with openpyxl for professional look
+wb = openpyxl.load_workbook(file_path)
+primary_fill = PatternFill(start_color="0A5C36", end_color="0A5C36", fill_type="solid") # Emerald/Green tone matching SMU logo
+header_font = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
+border_thin = Border(
+    left=Side(style='thin', color='CCCCCC'),
+    right=Side(style='thin', color='CCCCCC'),
+    top=Side(style='thin', color='CCCCCC'),
+    bottom=Side(style='thin', color='CCCCCC')
+)
+
+for sheetname in wb.sheetnames:
+    ws = wb[sheetname]
+    # Header styling
+    for col in range(1, ws.max_column + 1):
+        cell = ws.cell(row=1, column=col)
+        cell.fill = primary_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+    
+    # Data rows styling & column width auto-fit
+    for col in range(1, ws.max_column + 1):
+        max_len = 0
+        col_letter = get_column_letter(col)
+        for row in range(1, ws.max_row + 1):
+            cell = ws.cell(row=row, column=col)
+            cell.border = border_thin
+            if row > 1:
+                cell.alignment = Alignment(horizontal="left", vertical="center")
+            if cell.value:
+                max_len = max(max_len, len(str(cell.value)))
+        ws.column_dimensions[col_letter].width = max(max_len + 4, 15)
+
+wb.save(file_path)
+print("Excel file created successfully.")
